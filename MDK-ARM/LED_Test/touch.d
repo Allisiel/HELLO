@@ -33,4 +33,4 @@ led_test\touch.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_spi.h
 led_test\touch.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_spi_ex.h
 led_test\touch.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 led_test\touch.o: ..\Drivers\HARDWARE\Inc\touch.h
-led_test\touch.o: ..\Drivers\HARDWARE\Inc\oled.h
+led_test\touch.o: ..\Drivers\HARDWARE\Inc\LCD.h

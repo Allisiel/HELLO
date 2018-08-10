@@ -45,8 +45,8 @@
 #define PEN  	HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3)
 #define MISO 	HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6)
 
-#define OLED_CS2_Clr()    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET) //CS2
-#define OLED_CS2_Set()    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET)
+#define LCD_CS2_Clr()    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET) //CS2
+#define LCD_CS2_Set()    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET)
 struct tp_pix_
 {
 	u16 x;

@@ -1,6 +1,6 @@
 led_test\main.o: ../Src/main.c
 led_test\main.o: ../Inc/main.h
-led_test\main.o: ..\Drivers\HARDWARE\Inc\oled.h
+led_test\main.o: ..\Drivers\HARDWARE\Inc\LCD.h
 led_test\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 led_test\main.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h
 led_test\main.o: ../Inc/stm32l4xx_hal_conf.h

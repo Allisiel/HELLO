@@ -1,8 +1,8 @@
 #include "stm32l4xx_hal.h"
 #include "stdlib.h"	 
 #include "touch.h"
-#include "oled.h"
-//#include "oledfont.h"
+#include "LCD.h"
+//#include "LCDfont.h"
 
 
 //***因触摸屏批次不同等原因，默认的校准参数值可能会引起触摸识别不准，建议校准后再使用，不建议使用固定的默认校准参数
@@ -41,24 +41,24 @@ u8 tpstate(void)
 //**********************************************************
 void SPI_Init(void)                                     //SPI开始
 {
-OLED_CS2_Set();
-OLED_SCLK_Set();
-OLED_SDIN_Set();
-OLED_SCLK_Set();
+LCD_CS2_Set();
+LCD_SCLK_Set();
+LCD_SDIN_Set();
+LCD_SCLK_Set();
 }
 //**********************************************************
 void WriteCharTo7843(unsigned char num)          //SPI写数据
 {
 unsigned char count=0;
-OLED_SCLK_Clr();
+LCD_SCLK_Clr();
 for(count=0;count<8;count++)
 {
-OLED_SCLK_Clr();
+LCD_SCLK_Clr();
 		if(num&0x80)
-		   OLED_SDIN_Set();
+		   LCD_SDIN_Set();
 		else 
-		   OLED_SDIN_Clr();
-				OLED_SCLK_Set();
+		   LCD_SDIN_Clr();
+				LCD_SCLK_Set();
 	num<<=1;
 }
 }
@@ -70,8 +70,8 @@ u16 ReadFromCharFrom7843()             //SPI 读数据
 	for(count=0;count<12;count++)
 	{
 		Num<<=1;		
-		OLED_SCLK_Set();               //下降沿有效
-		OLED_SCLK_Clr();
+		LCD_SCLK_Set();               //下降沿有效
+		LCD_SCLK_Clr();
 		if(MISO)
 		{
 			Num|=1;
@@ -85,12 +85,12 @@ return(Num);
 u16 ADS_Read_AD(unsigned char CMD)          
 {
 u16 l;
-OLED_CS2_Clr();
+LCD_CS2_Clr();
 WriteCharTo7843(CMD);        //送控制字即用差分方式读X坐标 详细请见有关资料
-OLED_SCLK_Set(); 
-OLED_SCLK_Clr();
+LCD_SCLK_Set(); 
+LCD_SCLK_Clr();
 l=ReadFromCharFrom7843();
-OLED_CS2_Set();
+LCD_CS2_Set();
 return l;
 }		   
 //读取一个坐标值
@@ -340,8 +340,8 @@ void Point(void) //绘图函数
 				//LCD_ShowString(180,250,"Y:");LCD_ShowNum(200,250,(u32)tp_pixad.y,6);	
 				LCD_ShowString(10,250,"X:");LCD_ShowNum(30,250,tp_pixad.x,4);
 				LCD_ShowString(180,250,"Y:");LCD_ShowNum(200,250,tp_pixad.y,4);
-				LCD_ShowRETURN(0,288,0);
-				LCD_ShowRETURN(32,288,1);
+				LCD_ShowRETURN(0,288,31);
+				LCD_ShowRETURN(32,288,32);
 //				LCD_ShowSinogram(64,288,2);
 				
 				LCD_DrawPoint_Big(tp_pixlcd.x,tp_pixlcd.y);   

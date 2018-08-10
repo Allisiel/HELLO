@@ -404,11 +404,6 @@
               <FileType>1</FileType>
               <FilePath>../Src/stm32l4xx_hal_msp.c</FilePath>
             </File>
-            <File>
-              <FileName>ReadMe.txt</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\ReadMe.txt</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -533,6 +528,16 @@
               <FileName>touch.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Drivers\HARDWARE\Src\touch.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Notice</GroupName>
+          <Files>
+            <File>
+              <FileName>ReadMe.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ReadMe.txt</FilePath>
             </File>
           </Files>
         </Group>
