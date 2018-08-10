@@ -520,14 +520,14 @@
           <GroupName>Driver/HARDWARE</GroupName>
           <Files>
             <File>
-              <FileName>oled.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Drivers\HARDWARE\Src\oled.c</FilePath>
-            </File>
-            <File>
               <FileName>touch.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Drivers\HARDWARE\Src\touch.c</FilePath>
+            </File>
+            <File>
+              <FileName>lcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\HARDWARE\Src\lcd.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -77,7 +77,7 @@ extern  u16 BACK_COLOR, POINT_COLOR;   //背景色，画笔色
 
 
 void Main_Menu(void);//显示主菜单信息
-void Menu_1(void);   //显示菜单一信息
+void Menu_One(void);   //显示菜单一信息
 
 void LCD_ShowImage(int m,int n,int x,int y,const unsigned char *p);        
 void DrawPicture(void);
@@ -103,8 +103,8 @@ void LCD_ShowNum(u16 x,u16 y,u32 num,u8 len);//显示数字
 void LCD_Show2Num(u16 x,u16 y,u16 num,u8 len);//显示2个数字
 void LCD_ShowString(u16 x,u16 y,const u8 *p);//显示一个字符串,16字体
  
-void LCD_ShowSinogram(unsigned int m,unsigned int n,unsigned int x,unsigned int y,unsigned char index);
-void LCD_ShowRETURN(unsigned int x,unsigned int y,unsigned char index);
+void LCD_ShowSinogram_32(unsigned int m,unsigned int n,unsigned int x,unsigned int y,unsigned char index);
+void LCD_ShowSinogram_16(unsigned int x,unsigned int y,unsigned char index);
 
 void Fast_DrawFont_GBK16(u16 x, u16 y, u16 fc, u16 bc, u8 *s);
 
@@ -136,6 +136,17 @@ void Fast_DrawFont_GBK16(u16 x, u16 y, u16 fc, u16 bc, u8 *s);
 
 #define LGRAYBLUE        0XA651 //浅灰蓝色(中间层颜色)
 #define LBBLUE           0X2B12 //浅棕蓝色(选择条目的反色)
+
+/*    菜单枚举变量    */
+typedef enum
+{
+    Menu_0 = 0x00,
+	Menu_1,
+	Menu_2,
+	Menu_3,
+	
+}Menu_EnumTypeDef;
+
 
 
 					  		 

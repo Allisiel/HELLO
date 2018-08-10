@@ -89,8 +89,8 @@ int main(void)
 	/* USER CODE BEGIN Init */
 	HAL_NVIC_SetPriority(SPI1_IRQn,2,2);
 	TP_Init();
-	SPI_Init()  ;//模拟SPI初始化
-	MX_SPI1_Init();
+	Touch_Init()  ;//模拟SPI初始化
+	MX_SPI1_Init();//硬件SPI初始化
 	LCD_Init();			//初始化LCD 
 	/* USER CODE END Init */
 
@@ -114,17 +114,18 @@ int main(void)
 	/* USER CODE BEGIN WHILE */
 	while (1)
 	{
-	/* USER CODE END WHILE */
-	if(Detect()) //检测触摸和按键
-	{	
-    LCD_ShowImage(240,320,1,1,gImage_Knife); 
+		Detect();
+		/* USER CODE END WHILE */
+		if(Detect()) //检测触摸和按键
+		{	
+		LCD_ShowImage(240,320,1,1,gImage_Knife); 
+		}
+		if(ref) LCD_ShowImage(240,320,1,1,gImage_Knife); 
+
+		/* USER CODE BEGIN 3 */
+
 	}
-    if(ref) LCD_ShowImage(240,320,1,1,gImage_Knife); 
-
-	/* USER CODE BEGIN 3 */
-
-    }
-    /* USER CODE END 3 */
+		/* USER CODE END 3 */
 
 }
 
@@ -194,9 +195,9 @@ static void MX_SPI1_Init(void)
 	hspi1.Instance = SPI1;
 	hspi1.Init.Mode = SPI_MODE_MASTER;
 	hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-	hspi1.Init.DataSize = SPI_DATASIZE_4BIT;
+	hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
 	hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-	hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+	hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
 	hspi1.Init.NSS = SPI_NSS_SOFT;
 	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
 	hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;

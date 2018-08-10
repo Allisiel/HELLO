@@ -15,6 +15,10 @@
   *			Date: 2018.8.2
   *			Mod: 完成屏幕初始化，屏幕开始从亮变暗，但显示不了画面和文字，经过下午调整和优化，能显示字，存在刷新慢的问题
   *
+  *		  3.Author: JC.Yang 
+  *			Date: 2018.8.3
+  *			Mod: 往后的具体更新参见ReadMe.txt中和GitHub更新Description
+  *  		
   *******************************************************************************************************
   */	
 	
@@ -71,14 +75,27 @@ void LCD_ShowImage(int m,int n,int x,int y,const unsigned char *p)
 	ref=0;				
 }
 
-void Main_Menu()//显示信息
+/*
+*********************************************************************************************************
+*                      Main_Menu                    
+*
+* Description: 主菜单显示函数
+*             
+* Arguments  : None.
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+void Main_Menu()
 {   
 	u16 lx,ly;
 	BACK_COLOR=WHITE;
 	POINT_COLOR=RED;	
-	LCD_ShowSinogram(32,32,70,0,0); 
-	LCD_ShowSinogram(32,32,102,0,1);	
-	LCD_ShowSinogram(32,32,134,0,2);  
+	LCD_ShowSinogram_32(32,32,70,0,0); 
+	LCD_ShowSinogram_32(32,32,102,0,1);	
+	LCD_ShowSinogram_32(32,32,134,0,2);  
 	
 	POINT_COLOR=BLUE;	
     LCD_ShowString( 40,35,"2.8 TFT SPI 240*320");
@@ -110,6 +127,32 @@ void Main_Menu()//显示信息
 	LCD_ShowString(50,130,"JC.Yang-----");LCD_ShowNum(150,130,66666,5);
 }  
 
+
+void Menu_One(void)
+{
+	BACK_COLOR=WHITE;
+	POINT_COLOR=RED;	
+	LCD_DrawPoint_Big(120,160);
+	Draw_Circle(120,160,10);
+	Draw_Circle(120,160,30);	
+	Draw_Circle(120,160,50);	
+	Draw_Circle(120,160,70);	
+	Draw_Circle(120,160,90);	
+	Draw_Circle(120,160,110);	
+}
+/*
+*********************************************************************************************************
+*                      DrawPicture                    
+*
+* Description: 画图界面操作
+*             
+* Arguments  : None.
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void DrawPicture()
 {
 	LCD_Clear(WHITE); //清屏
@@ -117,19 +160,46 @@ void DrawPicture()
 	POINT_COLOR=RED;
 	Point();
 }  
-
-unsigned char Detect() //检测触摸和按键
+/*
+*********************************************************************************************************
+*                      Detect                    
+*
+* Description: 检测触摸和按键
+*             
+* Arguments  : None.
+*
+* Reutrn     : 1：说明触摸按下
+*              0：说明无触摸
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+unsigned char Detect() 
 {
 	if (tpstate()==0) //如果触摸按下，则进入绘图程序
 	 {
-		DrawPicture();
+		DrawPicture();//绘图
 		return 1;
 	 }	
 	   return 0;
 }
-
-u16 BACK_COLOR, POINT_COLOR;   //背景色，画笔色
-void LCD_Writ_Bus(char dat)   //串行数据写入
+/*
+*********************************************************************************************************
+*                      LCD_Writ_Bus                    
+*
+* Description: 串行数据写入
+*              BACK_COLOR：背景色
+*			   POINT_COLOR：画笔色
+*             
+* Arguments  : dat：写入的数据
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+u16 BACK_COLOR, POINT_COLOR; 
+void LCD_Writ_Bus(char dat)   
 {	
 	unsigned char i;			  
   
@@ -145,14 +215,39 @@ void LCD_Writ_Bus(char dat)   //串行数据写入
 		dat<<=1;   
 	}			
 }
-
-void LCD_WR_DATA8(char da) //发送数据-8位参数
+/*
+*********************************************************************************************************
+*                      LCD_WR_DATA8                    
+*
+* Description: 发送数据8位参数
+*             
+* Arguments  : da：发送的8位数据
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+void LCD_WR_DATA8(char da) 
 {	
 	LCD_CS_Clr();
     LCD_DC_Set();
 	LCD_Writ_Bus(da);  
 	LCD_CS_Set();
-}  
+} 
+/*
+*********************************************************************************************************
+*                      LCD_WR_DATA                    
+*
+* Description: 发送数据16位参数
+*             
+* Arguments  : da：发送的16位数据
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
  void LCD_WR_DATA(int da)
 {	
 	LCD_CS_Clr();
@@ -160,7 +255,20 @@ void LCD_WR_DATA8(char da) //发送数据-8位参数
 	LCD_Writ_Bus(da>>8);
     LCD_Writ_Bus(da);
 	LCD_CS_Set();
-}	  
+}
+/*
+*********************************************************************************************************555555
+*                      LCD_WR_REG                    
+*
+* Description: 屏幕初始化代码所用到的函数
+*             
+* Arguments  : da：向总线写入的数据
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void LCD_WR_REG(char da)	 
 {		
 	LCD_CS_Clr();
@@ -168,13 +276,43 @@ void LCD_WR_REG(char da)
 	LCD_Writ_Bus(da);
 	LCD_CS_Set();
 }
+/*
+*********************************************************************************************************55555555
+*                      LCD_WR_REG_DATA                    
+*
+* Description: 屏幕初始化所用到的函数（前者的拓展版） （整体代码中基本没用到）
+*             
+* Arguments  : reg：写入的地址
+*			   da：写入的数据
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
  void LCD_WR_REG_DATA(int reg,int da)
-{	LCD_CS_Clr();
+{	
+	LCD_CS_Clr();
     LCD_WR_REG(reg);
 	LCD_WR_DATA(da);
 	LCD_CS_Set();
 }
-
+/*
+*********************************************************************************************************
+*                      Address_Set                    
+*
+* Description: 设置将要操作的像素点区域
+*             
+* Arguments  : x1：左上角的横坐标
+*              y1：左上角的纵坐标
+*              x2：右下角的横坐标
+*              y2：右下角的纵坐标
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void Address_Set(unsigned int x1,unsigned int y1,unsigned int x2,unsigned int y2)
 { 
 	LCD_WR_REG(0x2a);
@@ -192,13 +330,25 @@ void Address_Set(unsigned int x1,unsigned int y1,unsigned int x2,unsigned int y2
     LCD_WR_REG(0x2C);					 						 
 }
 
-
+/*
+*********************************************************************************************************
+*                      LCD_Init                    
+*
+* Description: LCD屏幕的初始化代码（包括模拟SPI引脚的初始化）
+*             
+* Arguments  : None.
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void LCD_Init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	
 	/* GPIO Ports Clock Enable */
-//	__HAL_RCC_SPI1_CLK_ENABLE();
+	__HAL_RCC_SPI1_CLK_ENABLE();
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 
 	GPIO_InitStructure.Pin = GPIO_PIN_0|GPIO_PIN_5|GPIO_PIN_2|GPIO_PIN_7|GPIO_PIN_4;	 //PD3,PD6推挽输出  
@@ -228,99 +378,6 @@ void LCD_Init(void)
 	HAL_Delay(20);
 	
 //************* Start Initial Sequence **********//
-//		LCD_WR_REG(0xCF);  
-//		LCD_WR_DATA(0x00); 
-//		LCD_WR_DATA(0xC1); 
-//		LCD_WR_DATA(0X30); 
-//		LCD_WR_REG(0xED);  
-//		LCD_WR_DATA(0x64); 
-//		LCD_WR_DATA(0x03); 
-//		LCD_WR_DATA(0X12); 
-//		LCD_WR_DATA(0X81); 
-//		LCD_WR_REG(0xE8);  
-//		LCD_WR_DATA(0x85); 
-//		LCD_WR_DATA(0x10); 
-//		LCD_WR_DATA(0x7A); 
-//		LCD_WR_REG(0xCB);  
-//		LCD_WR_DATA(0x39); 
-//		LCD_WR_DATA(0x2C); 
-//		LCD_WR_DATA(0x00); 
-//		LCD_WR_DATA(0x34); 
-//		LCD_WR_DATA(0x02); 
-//		LCD_WR_REG(0xF7);  
-//		LCD_WR_DATA(0x20); 
-//		LCD_WR_REG(0xEA);  
-//		LCD_WR_DATA(0x00); 
-//		LCD_WR_DATA(0x00); 
-//		LCD_WR_REG(0xC0);    //Power control 
-//		LCD_WR_DATA(0x1B);   //VRH[5:0] 
-//		LCD_WR_REG(0xC1);    //Power control 
-//		LCD_WR_DATA(0x01);   //SAP[2:0];BT[3:0] 
-//		LCD_WR_REG(0xC5);    //VCM control 
-//		LCD_WR_DATA(0x30); 	 //3F
-//		LCD_WR_DATA(0x30); 	 //3C
-//		LCD_WR_REG(0xC7);    //VCM control2 
-//		LCD_WR_DATA(0XB7); 
-//		LCD_WR_REG(0x36);    // Memory Access Control 
-//		LCD_WR_DATA(0x48); 
-//		LCD_WR_REG(0x3A);   
-//		LCD_WR_DATA(0x55); 
-//		LCD_WR_REG(0xB1);   
-//		LCD_WR_DATA(0x00);   
-//		LCD_WR_DATA(0x1A); 
-//		LCD_WR_REG(0xB6);    // Display Function Control 
-//		LCD_WR_DATA(0x0A); 
-//		LCD_WR_DATA(0xA2); 
-//		LCD_WR_REG(0xF2);    // 3Gamma Function Disable 
-//		LCD_WR_DATA(0x00); 
-//		LCD_WR_REG(0x26);    //Gamma curve selected 
-//		LCD_WR_DATA(0x01); 
-//		LCD_WR_REG(0xE0);    //Set Gamma 
-//		LCD_WR_DATA(0x0F); 
-//		LCD_WR_DATA(0x2A); 
-//		LCD_WR_DATA(0x28); 
-//		LCD_WR_DATA(0x08); 
-//		LCD_WR_DATA(0x0E); 
-//		LCD_WR_DATA(0x08); 
-//		LCD_WR_DATA(0x54); 
-//		LCD_WR_DATA(0XA9); 
-//		LCD_WR_DATA(0x43); 
-//		LCD_WR_DATA(0x0A); 
-//		LCD_WR_DATA(0x0F); 
-//		LCD_WR_DATA(0x00); 
-//		LCD_WR_DATA(0x00); 
-//		LCD_WR_DATA(0x00); 
-//		LCD_WR_DATA(0x00); 		 
-//		LCD_WR_REG(0XE1);    //Set Gamma 
-//		LCD_WR_DATA(0x00); 
-//		LCD_WR_DATA(0x15); 
-//		LCD_WR_DATA(0x17); 
-//		LCD_WR_DATA(0x07); 
-//		LCD_WR_DATA(0x11); 
-//		LCD_WR_DATA(0x06); 
-//		LCD_WR_DATA(0x2B); 
-//		LCD_WR_DATA(0x56); 
-//		LCD_WR_DATA(0x3C); 
-//		LCD_WR_DATA(0x05); 
-//		LCD_WR_DATA(0x10); 
-//		LCD_WR_DATA(0x0F); 
-//		LCD_WR_DATA(0x3F); 
-//		LCD_WR_DATA(0x3F); 
-//		LCD_WR_DATA(0x0F); 
-//		LCD_WR_REG(0x2B); 
-//		LCD_WR_DATA(0x00);
-//		LCD_WR_DATA(0x00);
-//		LCD_WR_DATA(0x01);
-//		LCD_WR_DATA(0x3f);
-//		LCD_WR_REG(0x2A); 
-//		LCD_WR_DATA(0x00);
-//		LCD_WR_DATA(0x00);
-//		LCD_WR_DATA(0x00);
-//		LCD_WR_DATA(0xef);	 
-//		LCD_WR_REG(0x11); //Exit Sleep
-//		HAL_Delay(120);
-//		LCD_WR_REG(0x29); //display on	
-
 	LCD_WR_REG(0xCF);  
 	LCD_WR_DATA8(0x00); 
 	LCD_WR_DATA8(0xD9); 
@@ -425,9 +482,19 @@ void LCD_Init(void)
 	LCD_WR_REG(0x29);    //Display on 
 	 
 } 
-
-//清屏函数
-//Color:要清屏的填充色
+/*
+*********************************************************************************************************
+*                      LCD_Clear                    
+*
+* Description: 清屏函数
+*             
+* Arguments  : Color：要清屏的填充色
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void LCD_Clear(u16 Color)
 {
 	u16 i,j;  	
@@ -440,29 +507,28 @@ void LCD_Clear(u16 Color)
 	    }
 	  }
 }
-
 /*
 *********************************************************************************************************
-*                            LCD_ShowSinogram                  
+*                            LCD_ShowSinogram_32                  
 *
 * Description: 汉字显示函数，用于显示各种大小字体的函数
 * 			   POINT_COLOR为内容颜色，BACK_COLOR为背景颜色
-* Arguments  : 1> m:
-*              2> n:
-*              2> x:
-*              2> y:
-*              2> index:
+* Arguments  : 1> m:文字宽度
+*              2> n:文字高度
+*              3> x:文字最左上角横坐标（最大240）
+*              4> y:文字最左上角纵坐标（最大320）
+*              5> index:文字库（两种文字库16*16大小和32*32大小）
+*			     （具体汉字编号参考LCDfont.h文件中Font_Library_16和Font_Library_32数组）
 * Reutrn     : None.
 *
 * Note(s)    : None.
 *********************************************************************************************************
 */
-//在指定位置显示一个汉字(32*32大小)
-void LCD_ShowSinogram(unsigned int m,unsigned int n,unsigned int x,unsigned int y,unsigned char index)	
+void LCD_ShowSinogram_32(unsigned int m,unsigned int n,unsigned int x,unsigned int y,unsigned char index)	
 {  
 	unsigned char i,j,k;
 	k=m*n/8;
-	u8 *temp=name;    
+	u8 *temp=Font_Library_32;    
     Address_Set(x,y,x+m-1,y+n-1); //设置区域      
 	temp+=index*k;
 	for(j=0;j<k;j++)
@@ -481,11 +547,25 @@ void LCD_ShowSinogram(unsigned int m,unsigned int n,unsigned int x,unsigned int 
 		temp++;
 	 }
 }
-
-void LCD_ShowRETURN(unsigned int x,unsigned int y,unsigned char index)	
+/*
+*********************************************************************************************************
+*                      LCD_ShowSinogram_16                    
+*
+* Description: 汉字显示函数，用于显示各种大小字体的函数(待优化 与上一个函数相同)
+*             
+* Arguments  : x：左上角横坐标
+*              y：左上角纵坐标
+*              index：汉字筛选
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+void LCD_ShowSinogram_16(unsigned int x,unsigned int y,unsigned char index)	
 {  
 	unsigned char i,j;
-	unsigned char *temp=Return;    
+	unsigned char *temp=Font_Library_16;    
     Address_Set(x,y,x+15,y+15); //设置区域      
 	temp+=index*32;
 	for(j=0;j<32;j++)
@@ -504,23 +584,60 @@ void LCD_ShowRETURN(unsigned int x,unsigned int y,unsigned char index)
 		temp++;
 	 }
 }
-
-//画点
-//POINT_COLOR:此点的颜色
+/*
+*********************************************************************************************************
+*                      LCD_DrawPoint                    
+*
+* Description: 画点函数(POINT_COLOR:此点的颜色)
+*             
+* Arguments  : x：点横坐标
+*              y：点纵坐标
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void LCD_DrawPoint(u16 x,u16 y)
 {
 	Address_Set(x,y,x,y);//设置光标位置 
 	LCD_WR_DATA(POINT_COLOR); 	    
 } 	 
-//画一个大点
-//POINT_COLOR:此点的颜色
+/*
+*********************************************************************************************************
+*                      LCD_DrawPoint_Big                    
+*
+* Description: 画一个大点(POINT_COLOR:此点的颜色)
+*             
+* Arguments  : x：点横坐标
+*              y：点纵坐标
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void LCD_DrawPoint_Big(u16 x,u16 y)
 {
 	LCD_Fill(x-1,y-1,x+1,y+1,POINT_COLOR);
 } 
-//在指定区域内填充指定颜色
-//区域大小:
-//  (xend-xsta)*(yend-ysta)
+/*
+*********************************************************************************************************
+*                      LCD_Fill                    
+*
+* Description: 在指定区域内填充指定颜色
+*              区域大小：xend-xsta)*(yend-ysta)    
+*
+* Arguments  : xsta：左上角横坐标
+*              xend：左上角纵坐标
+*              ysta：右下角横坐标
+*              yend：右下角纵坐标
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color)
 {          
 	u16 i,j; 
@@ -530,9 +647,22 @@ void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color)
 		for(j=xsta;j<=xend;j++)LCD_WR_DATA(color);//设置光标位置 	    
 	} 					  	    
 }  
-//画线
-//x1,y1:起点坐标
-//x2,y2:终点坐标  
+/*
+*********************************************************************************************************
+*                      LCD_DrawLine                    
+*
+* Description: 画线函数
+*             
+* Arguments  : x1：起点横坐标
+*			   y1：起点纵坐标
+*              x2：终点横坐标
+*			   y2：终点纵坐标
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void LCD_DrawLine(u16 x1, u16 y1, u16 x2, u16 y2)
 {
 	u16 t; 
@@ -568,7 +698,22 @@ void LCD_DrawLine(u16 x1, u16 y1, u16 x2, u16 y2)
 		} 
 	}  
 }    
-//画矩形
+/*
+*********************************************************************************************************
+*                      LCD_DrawRectangle                    
+*
+* Description: 画矩形函数（非填充）
+*             
+* Arguments  : x1：起点横坐标
+*			   y1：起点纵坐标
+*              x2：终点横坐标
+*			   y2：终点纵坐标
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void LCD_DrawRectangle(u16 x1, u16 y1, u16 x2, u16 y2)
 {
 	LCD_DrawLine(x1,y1,x2,y1);
@@ -576,9 +721,21 @@ void LCD_DrawRectangle(u16 x1, u16 y1, u16 x2, u16 y2)
 	LCD_DrawLine(x1,y2,x2,y2);
 	LCD_DrawLine(x2,y1,x2,y2);
 }
-//在指定位置画一个指定大小的圆
-//(x,y):中心点
-//r    :半径
+/*
+*********************************************************************************************************
+*                      Draw_Circle                    
+*
+* Description: 在指定位置画一个指定大小的圆
+*             
+* Arguments  : x：中心点横坐标
+*			   y：中心点纵坐标
+*			   r：半径
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void Draw_Circle(u16 x0,u16 y0,u8 r)
 {
 	int a,b;
@@ -607,15 +764,22 @@ void Draw_Circle(u16 x0,u16 y0,u8 r)
 		LCD_DrawPoint(x0+a,y0+b);
 	}
 } 
-//在指定位置显示一个字符
-
-//num:要显示的字符:" "--->"~"
-//mode:叠加方式(1)还是非叠加方式(0)
-//在指定位置显示一个字符
-
-//num:要显示的字符:" "--->"~"
-
-//mode:叠加方式(1)还是非叠加方式(0)
+/*
+*********************************************************************************************************
+*                      LCD_ShowChar                    
+*
+* Description: 在指定位置显示一个字符（8*16大小）
+*             
+* Arguments  : x：字符横坐标
+*			   y：字符纵坐标
+*              num：要显示的字符:" "--->"~"
+*			   mode：叠加方式(1)还是非叠加方式(0)   
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void LCD_ShowChar(u16 x,u16 y,u8 num,u8 mode)
 {
     u8 temp;
@@ -655,19 +819,41 @@ void LCD_ShowChar(u16 x,u16 y,u8 num,u8 mode)
 		}
 	}
 	POINT_COLOR=colortemp;	    	   	 	  
-}   
-//m^n函数
+}
+/*
+*********************************************************************************************************
+*                      mypow                    
+*
+* Description: m^n函数
+*             
+* Arguments  : None.
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 u32 mypow(u8 m,u8 n)
 {
 	u32 result=1;	 
 	while(n--)result*=m;    
 	return result;
-}			 
-//显示2个数字
-//x,y :起点坐标	 
-//len :数字的位数
-//color:颜色
-//num:数值(0~4294967295);	
+}	
+/*
+*********************************************************************************************************
+*                      LCD_ShowNum                    
+*
+* Description: 显示数字函数
+*             
+* Arguments  : x,y：起点坐标	 
+*   		   len：数字的位数
+*			   num:数值(0~4294967295);
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void LCD_ShowNum(u16 x,u16 y,u32 num,u8 len)
 {         	
 	u8 t,temp;
@@ -688,9 +874,21 @@ void LCD_ShowNum(u16 x,u16 y,u32 num,u8 len)
 	 	LCD_ShowChar(x+8*t,y,temp+48,0); 
 	}
 } 
-//显示2个数字
-//x,y:起点坐标
-//num:数值(0~99);	 
+/*
+*********************************************************************************************************
+*                      LCD_Show2Num                    
+*
+* Description: 显示2个数字
+*             
+* Arguments  : x,y：起点坐标
+*			   num：数值(0~99)
+*			   len：数字长度
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void LCD_Show2Num(u16 x,u16 y,u16 num,u8 len)
 {         	
 	u8 t,temp;						   
@@ -700,10 +898,20 @@ void LCD_Show2Num(u16 x,u16 y,u16 num,u8 len)
 	 	LCD_ShowChar(x+8*t,y,temp+'0',0); 
 	}
 } 
-//显示字符串
-//x,y:起点坐标  
-//*p:字符串起始地址
-//用16字体
+/*
+*********************************************************************************************************
+*                      LCD_ShowString                    
+*
+* Description: 显示字符串函数（用16字体）
+*             
+* Arguments  : x,y:起点坐标  
+*		   	   *p:字符串起始地址
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 void LCD_ShowString(u16 x,u16 y,const u8 *p)
 {         
     while(*p!='\0')

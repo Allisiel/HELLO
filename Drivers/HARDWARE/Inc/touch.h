@@ -61,7 +61,7 @@ extern struct tp_pix_  tp_pixad,tp_pixlcd;	 //µ±Ç°´¥¿Ø×ø±êµÄADÖµ,Ç°´¥¿Ø×ø±êµÄÏñË
 extern u16 vx,vy;  //±ÈÀıÒò×Ó£¬´ËÖµ³ıÒÔ1000Ö®ºó±íÊ¾¶àÉÙ¸öADÖµ´ú±íÒ»¸öÏñËØµã
 extern u16 chx,chy;//Ä¬ÈÏÏñËØµã×ø±êÎª0Ê±µÄADÆğÊ¼Öµ
 u8 tpstate(void);
-void SPI_Init(void);  
+void Touch_Init(void);  
 void Touch_Adjust(void);
 void Point(void); //»æÍ¼º¯Êı
 u16 ReadFromCharFrom7843(void);         //SPI ¶ÁÊı¾İ

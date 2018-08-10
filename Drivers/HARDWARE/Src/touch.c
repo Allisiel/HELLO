@@ -10,8 +10,21 @@ u16 vx=15542,vy=11165;  //比例因子，此值除以1000之后表示多少个AD值代表一个像素点
 u16 chx=140,chy=146;//默认像素点坐标为0时的AD起始值
 //***因触摸屏批次不同等原因，默认的校准参数值可能会引起触摸识别不准，建议校准后再使用，不建议使用固定的默认校准参数
 
-struct tp_pix_  tp_pixad,tp_pixlcd;	 //当前触控坐标的AD值,前触控坐标的像素值   
+struct tp_pix_  tp_pixad,tp_pixlcd;	 //当前触控坐标的AD值,前触控坐标的像素值
 
+/*
+*********************************************************************************************************
+*                      TP_Init                    
+*
+* Description: 对触摸的三个引脚进行模拟SPI初始化
+*             
+* Arguments  : None.
+*
+* Reutrn     : 0.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 u8 TP_Init(void)
 {	   
 	//注意,时钟使能之后,对GPIO的操作才有效
@@ -34,36 +47,86 @@ u8 TP_Init(void)
   	HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
 	return 0;
 }
+/*
+*********************************************************************************************************
+*                      tpstate                    
+*
+* Description: 检测PEN引脚，用于检测是否有触屏动作
+*             
+* Arguments  : None.
+*
+* Reutrn     : 0：有触摸按下
+*			   1：未有触摸
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 u8 tpstate(void)
 {
 	return 	PEN;
 }
-//**********************************************************
-void SPI_Init(void)                                     //SPI开始
+/*
+*********************************************************************************************************
+*                      Touch_Init                    
+*
+* Description: 对触摸引脚进行SPI时序配置(SPI开始)
+*             
+* Arguments  : None.
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+void Touch_Init(void)                                  
 {
-LCD_CS2_Set();
-LCD_SCLK_Set();
-LCD_SDIN_Set();
-LCD_SCLK_Set();
+	LCD_CS2_Set();
+	LCD_SCLK_Set();
+	LCD_SDIN_Set();
+	LCD_SCLK_Set();
 }
-//**********************************************************
-void WriteCharTo7843(unsigned char num)          //SPI写数据
+/*
+*********************************************************************************************************
+*                      WriteCharTo7843                    
+*
+* Description: SPI写数据
+*             
+* Arguments  : num：写的数据
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+void WriteCharTo7843(unsigned char num)      
 {
-unsigned char count=0;
-LCD_SCLK_Clr();
-for(count=0;count<8;count++)
-{
-LCD_SCLK_Clr();
-		if(num&0x80)
-		   LCD_SDIN_Set();
-		else 
-		   LCD_SDIN_Clr();
-				LCD_SCLK_Set();
-	num<<=1;
+	unsigned char count=0;
+	LCD_SCLK_Clr();
+	for(count=0;count<8;count++)
+	{
+	LCD_SCLK_Clr();
+			if(num&0x80)
+			   LCD_SDIN_Set();
+			else 
+			   LCD_SDIN_Clr();
+					LCD_SCLK_Set();
+		num<<=1;
+	}
 }
-}
-//**********************************************************
-u16 ReadFromCharFrom7843()             //SPI 读数据
+/*
+*********************************************************************************************************
+*                      ReadFromCharFrom7843                    
+*
+* Description: SPI 读数据
+*             
+* Arguments  : None.
+*
+* Reutrn     : 读到的数据
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+u16 ReadFromCharFrom7843()             
 {
 	u8 count=0;
 	u16 Num=0;
@@ -79,25 +142,50 @@ u16 ReadFromCharFrom7843()             //SPI 读数据
 		
 	}
 
-return(Num);
+	return(Num);
 }	
-//从7846/7843/XPT2046/UH7843/UH7846读取adc值	  0x90=y   0xd0-x
+/*
+*********************************************************************************************************
+*                      ADS_Read_AD                    
+*
+* Description: 从7846/7843/XPT2046/UH7843/UH7846读取adc值
+*             
+* Arguments  : 0x90=y   0xd0-x
+*
+* Reutrn     : l：读到的值
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+//	 
 u16 ADS_Read_AD(unsigned char CMD)          
 {
-u16 l;
-LCD_CS2_Clr();
-WriteCharTo7843(CMD);        //送控制字即用差分方式读X坐标 详细请见有关资料
-LCD_SCLK_Set(); 
-LCD_SCLK_Clr();
-l=ReadFromCharFrom7843();
-LCD_CS2_Set();
-return l;
-}		   
-//读取一个坐标值
-//连续读取READ_TIMES次数据,对这些数据升序排列,
-//然后去掉最低和最高LOST_VAL个数,取平均值 
+	u16 l;
+	LCD_CS2_Clr();
+	WriteCharTo7843(CMD);        //送控制字即用差分方式读X坐标 详细请见有关资料
+	LCD_SCLK_Set(); 
+	LCD_SCLK_Clr();
+	l=ReadFromCharFrom7843();
+	LCD_CS2_Set();
+	return l;
+}	
+/*
+*********************************************************************************************************
+*                      ADS_Read_XY                    
+*
+* Description: 读取一个坐标值
+*              连续读取READ_TIMES次数据,对这些数据升序排列,
+*		       然后去掉最低和最高LOST_VAL个数,取平均值 
+* Arguments  : None.
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 #define READ_TIMES 15 //读取次数
 #define LOST_VAL 5	  //丢弃值
+
 u16 ADS_Read_XY(u8 xy)
 {
 	u16 i, j;
@@ -125,21 +213,46 @@ u16 ADS_Read_XY(u8 xy)
 	temp=sum/(READ_TIMES-2*LOST_VAL);
 	return temp;   
 } 
-//带滤波的坐标读取
-//最小值不能少于100.
+/*
+*********************************************************************************************************
+*                      Read_ADS                    
+*
+* Description: 带滤波的坐标读取
+*			   最小值不能少于100.
+*             
+* Arguments  : *x：读取的横坐标
+*			   *y：读取的纵坐标
+*
+* Reutrn     : 0：读数失败
+*			   1：读数成功
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 u8 Read_ADS(u16 *x,u16 *y)
 {
 	u16 xtemp,ytemp;			 	 		  
 	xtemp=ADS_Read_XY(CMD_RDX);
 	ytemp=ADS_Read_XY(CMD_RDY);	 									   
-	if(xtemp<100||ytemp<100)return 0;//读数失败
+	if(xtemp<100||ytemp<100)return 0;
 	*x=xtemp;
 	*y=ytemp;
-	return 1;//读数成功
+	return 1;
 }
-//2次读取ADS7846,连续读取2次有效的AD值,且这两次的偏差不能超过
-//50,满足条件,则认为读数正确,否则读数错误.	   
-//该函数能大大提高准确度
+/*
+*********************************************************************************************************
+*                      Read_ADS2                    
+*
+* Description: 2次读取ADS7846,连续读取2次有效的AD值,且这两次的偏差不能超过50,满足条件,则认为读数正确,否则读数错误.	   
+			   该函数能大大提高准确度
+*             
+* Arguments  : 同上个函数
+*
+* Reutrn     : 同上个函数
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 #define ERR_RANGE 20 //误差范围 
 u8 Read_ADS2(u16 *x,u16 *y) 
 {
@@ -158,7 +271,19 @@ u8 Read_ADS2(u16 *x,u16 *y)
         return 1;
     }else return 0;	  
 } 
-//精确读取一次坐标,校准的时候用的	   
+/*
+*********************************************************************************************************
+*                      Read_TP_Once                    
+*
+* Description: 精确读取一次坐标,校准的时候用的	
+*             
+* Arguments  : None.
+*
+* Reutrn     : re：读取的坐标
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/ 
 u8 Read_TP_Once(void)
 {
 	u8 re=0;
@@ -175,10 +300,22 @@ u8 Read_TP_Once(void)
 	} 
 	return re;
 }
-//////////////////////////////////////////////////
-//与LCD部分有关的函数  
-//画一个触摸点
-//用来校准用的
+/*
+*********************************************************************************************************
+*                      Drow_Touch_Point                    
+*
+* Description: 与LCD部分有关的函数  
+*			   画一个触摸点，用来校准用的
+*             
+* Arguments  : x：画点的横坐标
+*			   y：画点的纵坐标
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+
 void Drow_Touch_Point(u16 x,u16 y)
 {
 	LCD_DrawLine(x-12,y,x+13,y);//横线
@@ -189,8 +326,20 @@ void Drow_Touch_Point(u16 x,u16 y)
 	LCD_DrawPoint(x-1,y-1);
 //	Draw_Circle(x,y,6);//画中心圈
 }	  
-//转换结果
-//根据触摸屏的校准参数来决定转换后的结果,保存在X0,Y0中
+/*
+*********************************************************************************************************
+*                      Convert_Pos                    
+*
+* Description: 转换结果
+*			   根据触摸屏的校准参数来决定转换后的结果,保存在X0,Y0中
+*             
+* Arguments  : None.
+*
+* Reutrn     : l：转换结果
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 u8 Convert_Pos(void)
 {		 	 
 	u8 l=0; 
@@ -202,10 +351,22 @@ u8 Convert_Pos(void)
 	}
 	return l;
 }	   
-//触摸屏校准代码
-//得到四个校准参数
+/*
+*********************************************************************************************************
+*                      Touch_Adjust                    
+*
+* Description: 触摸屏校准代码，得到四个校准参数
+*             
+* Arguments  : None.
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 #define tp_pianyi 50   //校准坐标偏移量	
 #define tp_xiaozhun 1000   //校准精度
+
 void Touch_Adjust(void)
 {	
 	float vx1,vx2,vy1,vy2;  //比例因子，此值除以1000之后表示多少个AD值代表一个像素点
@@ -322,46 +483,80 @@ void Touch_Adjust(void)
 	} 
 }
 
+/*
+*********************************************************************************************************
+*                      Point                    
+*
+* Description: 绘图函数
+*             
+* Arguments  : None.
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
 #define RETURN tp_pixad.x < 1600 && tp_pixad.y > 3300
 #define	CONFIRM tp_pixad.x > 3000 && tp_pixad.y > 3300
 
-void Point(void) //绘图函数
+void Point(void) 
 {
-	double t=0;
-	
+	double static s=0,t=0;
+	extern u8 ref;
+	extern const unsigned char *gImage_Knife;
     while(1)
 	{  	
 		if(PEN==0)
 		{
-			t=0;
+			s=0;t=0;
 			if(Convert_Pos())	//得到坐标值
 			{
 			//	LCD_ShowString(10,250,"X:");LCD_ShowNum(30,250,(u32)tp_pixad.x,6);	
 				//LCD_ShowString(180,250,"Y:");LCD_ShowNum(200,250,(u32)tp_pixad.y,6);	
 				LCD_ShowString(10,250,"X:");LCD_ShowNum(30,250,tp_pixad.x,4);
-				LCD_ShowString(180,250,"Y:");LCD_ShowNum(200,250,tp_pixad.y,4);
-				LCD_ShowRETURN(0,288,31);
-				LCD_ShowRETURN(32,288,32);
-//				LCD_ShowSinogram(64,288,2);
+				LCD_ShowString(180,250,"Y:");LCD_ShowNum(200,250,tp_pixad.y,4);       //随机画点
+				LCD_ShowSinogram_16(0,288,31);
+				LCD_ShowSinogram_16(32,288,32);		      //取消		
+				LCD_ShowSinogram_16(176,288,29);
+				LCD_ShowSinogram_16(208,288,30);          //确定
 				
 				LCD_DrawPoint_Big(tp_pixlcd.x,tp_pixlcd.y);   
 			 }
 			if(RETURN)
 			{
-//				LCD_ShowImage();
-				return;
+				LCD_Clear(WHITE); 
+				Main_Menu();
 			}
-		
+		    if(CONFIRM)
+			{				
+				LCD_Clear(WHITE); 
+				Menu_One();
+			}
 			 
 		}
-//		else
-//		{	
+		else
+		{	
+			for(s=0;s<65000;s++)
+			{
+				for(t=0;t<10;t++)
+				{
+					if(Detect()) //检测触摸和按键
+					{	
+						ref=1;
+						LCD_ShowImage(240,320,1,1,gImage_Knife); 
+						return;
+					}		
+
+				}
+			}
+			return;
 //			t++;		
 //			if(t>65000)
 //			{
+//				s++;
 //				return;
 //			}
-//		}		
+		}		
 
 		}
 }	    	
