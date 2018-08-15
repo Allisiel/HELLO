@@ -42,7 +42,7 @@
 #include "LCD.h"
 #include "bmp.h"
 #include "touch.h"
-#include "stm32l4xx_hal_spi.h"
+#include "RS485.h"
 #include "stm32l4xx_hal.h"
 
 /* USER CODE BEGIN Includes */
@@ -51,6 +51,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;        //硬件SPI结构体初始化
+DMA_HandleTypeDef hdma_spi1_tx;
+DMA_HandleTypeDef hdma_spi1_rx;
+
+UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -60,6 +64,9 @@ SPI_HandleTypeDef hspi1;        //硬件SPI结构体初始化
 /*/ Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_SPI1_Init(void);
+static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
+static void MX_USART1_UART_Init(int bound);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -87,20 +94,25 @@ int main(void)
 	HAL_Init();
 
 	/* USER CODE BEGIN Init */
-	HAL_NVIC_SetPriority(SPI1_IRQn,2,2);
-	TP_Init();
-	Touch_Init()  ;//模拟SPI初始化
-	MX_SPI1_Init();//硬件SPI初始化
-	LCD_Init();			//初始化LCD 
+		//初始化LCD 
 	/* USER CODE END Init */
 
 	/* Configure the system clock */
 	SystemClock_Config();
 	/* USER CODE BEGIN SysInit */
-
+	HAL_NVIC_SetPriority(SPI1_IRQn,2,2);
+	HAL_SPI_MspInit(&hspi1);
+	TP_Init();
+	Touch_Init()  ;//模拟SPI初始化
+	MX_SPI1_Init();//硬件SPI初始化
+	LCD_Init();	
 	/* USER CODE END SysInit */
 
 	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	MX_DMA_Init();
+	MX_SPI1_Init();
+	MX_USART1_UART_Init(9600);
 
 	/* USER CODE BEGIN 2 */
 	BACK_COLOR=BLACK;;POINT_COLOR=WHITE; 
@@ -114,13 +126,15 @@ int main(void)
 	/* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		Detect();
+//		Detect();
+		LCD_ShutDown(10);
+		LCD_Show();
 		/* USER CODE END WHILE */
-		if(Detect()) //检测触摸和按键
-		{	
-		LCD_ShowImage(240,320,1,1,gImage_Knife); 
-		}
-		if(ref) LCD_ShowImage(240,320,1,1,gImage_Knife); 
+//		if(Detect()) //检测触摸和按键
+//		{	
+//		LCD_ShowImage(240,320,1,1,gImage_Knife); 
+//		}
+//		if(ref) LCD_ShowImage(240,320,1,1,gImage_Knife); 
 
 		/* USER CODE BEGIN 3 */
 
@@ -210,6 +224,55 @@ static void MX_SPI1_Init(void)
 	{
 	_Error_Handler(__FILE__, __LINE__);
 	}
+
+}
+
+/* USART1 init function */
+static void MX_USART1_UART_Init(int bound)
+{
+
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = bound;
+  huart1.Init.WordLength = UART_WORDLENGTH_7B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/** 
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void) 
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+
+}
+
+/** Pinout Configuration
+*/
+static void MX_GPIO_Init(void)
+{
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
 
 }
 

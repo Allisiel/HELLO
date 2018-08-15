@@ -33,5 +33,8 @@ led_test\main.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr.h
 led_test\main.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h
 led_test\main.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_spi.h
 led_test\main.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_spi_ex.h
+led_test\main.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h
+led_test\main.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h
 led_test\main.o: ..\Drivers\HARDWARE\Inc\bmp.h
 led_test\main.o: ..\Drivers\HARDWARE\Inc\touch.h
+led_test\main.o: ..\Drivers\HARDWARE\Inc\RS485.h

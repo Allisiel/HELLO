@@ -31,3 +31,5 @@ led_test\system_stm32l4xx.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_p
 led_test\system_stm32l4xx.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h
 led_test\system_stm32l4xx.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_spi.h
 led_test\system_stm32l4xx.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_spi_ex.h
+led_test\system_stm32l4xx.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h
+led_test\system_stm32l4xx.o: ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h

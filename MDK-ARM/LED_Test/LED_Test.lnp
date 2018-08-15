@@ -22,9 +22,12 @@
 "led_test\stm32l4xx_hal_lcd.o"
 "led_test\stm32l4xx_hal_spi.o"
 "led_test\stm32l4xx_hal_spi_ex.o"
+"led_test\stm32l4xx_hal_uart_ex.o"
+"led_test\stm32l4xx_hal_uart.o"
 "led_test\system_stm32l4xx.o"
 "led_test\touch.o"
 "led_test\lcd.o"
+"led_test\rs485.o"
 --library_type=microlib --strict --scatter "LED_Test\LED_Test.sct"
 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

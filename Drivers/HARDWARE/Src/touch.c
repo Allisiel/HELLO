@@ -320,10 +320,10 @@ void Drow_Touch_Point(u16 x,u16 y)
 {
 	LCD_DrawLine(x-12,y,x+13,y);//横线
 	LCD_DrawLine(x,y-12,x,y+13);//竖线
-	LCD_DrawPoint(x+1,y+1);
-	LCD_DrawPoint(x-1,y+1);
-	LCD_DrawPoint(x+1,y-1);
-	LCD_DrawPoint(x-1,y-1);
+	LCD_SetPixel(x+1,y+1);
+	LCD_SetPixel(x-1,y+1);
+	LCD_SetPixel(x+1,y-1);
+	LCD_SetPixel(x-1,y-1);
 //	Draw_Circle(x,y,6);//画中心圈
 }	  
 /*
@@ -530,7 +530,7 @@ void Point(void)
 		    if(CONFIRM)
 			{				
 				LCD_Clear(WHITE); 
-				Menu_One();
+				Menu_First();
 			}
 			 
 		}

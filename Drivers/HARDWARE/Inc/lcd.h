@@ -77,12 +77,13 @@ extern  u16 BACK_COLOR, POINT_COLOR;   //背景色，画笔色
 
 
 void Main_Menu(void);//显示主菜单信息
-void Menu_One(void);   //显示菜单一信息
+void Menu_First(void);   //显示菜单一信息
 
 void LCD_ShowImage(int m,int n,int x,int y,const unsigned char *p);        
 void DrawPicture(void);
 unsigned char Detect(void); 
-
+u8 LCD_ShutDown(u8 sec);
+void LCD_Show(void);
 
 void LCD_Init(void); 
 void LCD_Clear(u16 Color);
@@ -91,7 +92,7 @@ void LCD_WR_DATA8(char da); //发送数据-8位参数
 void LCD_WR_DATA(int da);
 void LCD_WR_REG(char da);
 
-void LCD_DrawPoint(u16 x,u16 y);//画点
+void LCD_SetPixel(u16 x,u16 y);//画点
 void LCD_DrawPoint_Big(u16 x,u16 y);//画一个大点
 u16  LCD_ReadPoint(u16 x,u16 y); //读点
 void Draw_Circle(u16 x0,u16 y0,u8 r);

@@ -1,0 +1,14 @@
+led_test\display.o: ..\GUI_APP\src\display.c
+led_test\display.o: ..\GUI_APP\inc\display.h
+led_test\display.o: ..\GUI_APP\inc\main_ui.h
+led_test\display.o: ..\GUI_DRV\interface\windows.h
+led_test\display.o: ..\GUI_DRV\interface\gui_config.h
+led_test\display.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+led_test\display.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+led_test\display.o: ..\GUI_DRV\interface\scrollbar.h
+led_test\display.o: ..\GUI_DRV\interface\gui_basic.h
+led_test\display.o: ..\GUI_DRV\interface\lcmdrv.h
+led_test\display.o: ..\GUI_APP\inc\menu.h
+led_test\display.o: ..\GUI_DRV\interface\gui_menu.h
+led_test\display.o: ..\GUI_APP\inc\pid_set.h
+led_test\display.o: ..\GUI_APP\inc\para_show.h

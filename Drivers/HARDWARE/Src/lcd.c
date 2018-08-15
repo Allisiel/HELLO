@@ -53,6 +53,8 @@ void LCD_ShowImage(int m,int n,int x,int y,const unsigned char *p)
 	unsigned char picH,picL;
 //	LCD_Clear(WHITE); //清屏  
 //	Main_Menu(); //显示信息
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_RESET);
+	
 	for(k=0;k<x;k++)									//行
 	{
 	   	for(j=0;j<y;j++)								//列
@@ -72,7 +74,8 @@ void LCD_ShowImage(int m,int n,int x,int y,const unsigned char *p)
 			 }	
 		 }
 	}
-	ref=0;				
+	ref=0;
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_SET);	
 }
 
 /*
@@ -91,6 +94,8 @@ void LCD_ShowImage(int m,int n,int x,int y,const unsigned char *p)
 void Main_Menu()
 {   
 	u16 lx,ly;
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_RESET);
+
 	BACK_COLOR=WHITE;
 	POINT_COLOR=RED;	
 	LCD_ShowSinogram_32(32,32,70,0,0); 
@@ -125,11 +130,26 @@ void Main_Menu()
 	Draw_Circle(120,240,70);	
 	Draw_Circle(120,240,80);
 	LCD_ShowString(50,130,"JC.Yang-----");LCD_ShowNum(150,130,66666,5);
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_SET);
 }  
 
-
-void Menu_One(void)
+/*
+*********************************************************************************************************
+*                      Menu_First                    
+*
+* Description: 界面一
+*             
+* Arguments  : None.
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+void Menu_First(void)
 {
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_RESET);
+	
 	BACK_COLOR=WHITE;
 	POINT_COLOR=RED;	
 	LCD_DrawPoint_Big(120,160);
@@ -139,6 +159,7 @@ void Menu_One(void)
 	Draw_Circle(120,160,70);	
 	Draw_Circle(120,160,90);	
 	Draw_Circle(120,160,110);	
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_SET);
 }
 /*
 *********************************************************************************************************
@@ -357,6 +378,15 @@ void LCD_Init(void)
  	HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);	  //初始化GPIOA0,5
 	
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_5|GPIO_PIN_2|GPIO_PIN_7|GPIO_PIN_4, GPIO_PIN_SET);// 输出高 A0 A5
+	
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	
+	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStructure.Pin = GPIO_PIN_3;
+	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	HAL_GPIO_Init(GPIOB,&GPIO_InitStructure);
+	
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_RESET);
 
 //调用一次这些函数，免得编译的时候提示警告
   /* 	LCD_CS =1;
@@ -497,7 +527,8 @@ void LCD_Init(void)
 */
 void LCD_Clear(u16 Color)
 {
-	u16 i,j;  	
+	u16 i,j;  
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_RESET);	
 	Address_Set(0,0,LCD_W-1,LCD_H-1);
     for(i=0;i<LCD_W;i++)
 	 {
@@ -506,7 +537,63 @@ void LCD_Clear(u16 Color)
         	LCD_WR_DATA(Color);	 			 
 	    }
 	  }
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_SET);
+
 }
+
+/*
+*********************************************************************************************************
+*                      LCD_ShutDown                    
+*
+* Description: 灭屏函数
+*             
+* Arguments  : sec：设置未操作多长时间后灭屏（单位为秒）
+*
+* Reutrn     : 0：灭屏
+*			   1：持续
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+u8 LCD_ShutDown(u8 sec)
+{
+	u32 Tim1,Tim2;
+	for(Tim1=0;Tim1<(sec*1000);Tim1++)
+	{
+		for(Tim2=0;Tim2<5000;Tim2++)
+		{
+			if(!PEN)
+			{
+				return 1;
+			}
+		}
+	}
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_RESET);
+
+	return 0;
+}
+/*
+*********************************************************************************************************
+*                      LCD_Show                    
+*
+* Description: 灭屏后如有触屏操作点亮屏幕
+*             
+* Arguments  : None.
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+void LCD_Show(void)
+{
+	if(HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_3) == 0)
+	{
+		if(!PEN)	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_SET);	
+	}
+	
+}	
+
 /*
 *********************************************************************************************************
 *                            LCD_ShowSinogram_32                  
@@ -586,7 +673,7 @@ void LCD_ShowSinogram_16(unsigned int x,unsigned int y,unsigned char index)
 }
 /*
 *********************************************************************************************************
-*                      LCD_DrawPoint                    
+*                      LCD_SetPixel                    
 *
 * Description: 画点函数(POINT_COLOR:此点的颜色)
 *             
@@ -598,7 +685,7 @@ void LCD_ShowSinogram_16(unsigned int x,unsigned int y,unsigned char index)
 * Note(s)    : None.
 *********************************************************************************************************
 */
-void LCD_DrawPoint(u16 x,u16 y)
+void LCD_SetPixel(u16 x,u16 y)
 {
 	Address_Set(x,y,x,y);//设置光标位置 
 	LCD_WR_DATA(POINT_COLOR); 	    
@@ -621,6 +708,11 @@ void LCD_DrawPoint_Big(u16 x,u16 y)
 {
 	LCD_Fill(x-1,y-1,x+1,y+1,POINT_COLOR);
 } 
+
+u16 LCD_ReadPoint(u16 x,u16 y)
+{
+	return 0;
+}
 /*
 *********************************************************************************************************
 *                      LCD_Fill                    
@@ -683,7 +775,7 @@ void LCD_DrawLine(u16 x1, u16 y1, u16 x2, u16 y2)
 	else distance=delta_y; 
 	for(t=0;t<=distance+1;t++ )//画线输出 
 	{  
-		LCD_DrawPoint(uRow,uCol);//画点 
+		LCD_SetPixel(uRow,uCol);//画点 
 		xerr+=delta_x ; 
 		yerr+=delta_y ; 
 		if(xerr>distance) 
@@ -744,15 +836,15 @@ void Draw_Circle(u16 x0,u16 y0,u8 r)
 	di=3-(r<<1);             //判断下个点位置的标志
 	while(a<=b)
 	{
-		LCD_DrawPoint(x0-b,y0-a);             //3           
-		LCD_DrawPoint(x0+b,y0-a);             //0           
-		LCD_DrawPoint(x0-a,y0+b);             //1       
-		LCD_DrawPoint(x0-b,y0-a);             //7           
-		LCD_DrawPoint(x0-a,y0-b);             //2             
-		LCD_DrawPoint(x0+b,y0+a);             //4               
-		LCD_DrawPoint(x0+a,y0-b);             //5
-		LCD_DrawPoint(x0+a,y0+b);             //6 
-		LCD_DrawPoint(x0-b,y0+a);             
+		LCD_SetPixel(x0-b,y0-a);             //3           
+		LCD_SetPixel(x0+b,y0-a);             //0           
+		LCD_SetPixel(x0-a,y0+b);             //1       
+		LCD_SetPixel(x0-b,y0-a);             //7           
+		LCD_SetPixel(x0-a,y0-b);             //2             
+		LCD_SetPixel(x0+b,y0+a);             //4               
+		LCD_SetPixel(x0+a,y0-b);             //5
+		LCD_SetPixel(x0+a,y0+b);             //6 
+		LCD_SetPixel(x0-b,y0+a);             
 		a++;
 		//使用Bresenham算法画圆     
 		if(di<0)di +=4*a+6;	  
@@ -761,7 +853,7 @@ void Draw_Circle(u16 x0,u16 y0,u8 r)
 			di+=10+4*(a-b);   
 			b--;
 		} 
-		LCD_DrawPoint(x0+a,y0+b);
+		LCD_SetPixel(x0+a,y0+b);
 	}
 } 
 /*
@@ -813,7 +905,7 @@ void LCD_ShowChar(u16 x,u16 y,u8 num,u8 mode)
 		    temp=asc2_1608[(u16)num*16+pos];		 //调用1608字体
 			for(t=0;t<8;t++)
 		    {                 
-		        if(temp&0x01)LCD_DrawPoint(x+t,y+pos);//画一个点     
+		        if(temp&0x01)LCD_SetPixel(x+t,y+pos);//画一个点     
 		        temp>>=1; 
 		    }
 		}
