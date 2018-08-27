@@ -23,11 +23,17 @@
   */	
 	
 #include "LCD.h"
+#include "main.h"
 #include "touch.h"
 #include "stdlib.h"
 #include "LCDfont.h"  	 
 #include "stm32l4xx_hal.h"
+#include "stm32l4xx_hal_tim.h"
 #include "stm32l4xx_hal_gpio.h"
+
+
+extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim2;
 
 /*
 *********************************************************************************************************
@@ -50,10 +56,17 @@ unsigned char ref=0;//刷新显示标志位
 void LCD_ShowImage(int m,int n,int x,int y,const unsigned char *p)        
 {
   	int i,j,k; 
+	u16 Tim = 300;
 	unsigned char picH,picL;
-//	LCD_Clear(WHITE); //清屏  
-//	Main_Menu(); //显示信息
-	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_RESET);
+
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_8,GPIO_PIN_RESET);	
+	while (Tim)
+	{
+	  Tim--;
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Tim);
+	  HAL_Delay(1);
+	}
+
 	
 	for(k=0;k<x;k++)									//行
 	{
@@ -75,6 +88,13 @@ void LCD_ShowImage(int m,int n,int x,int y,const unsigned char *p)
 		 }
 	}
 	ref=0;
+	
+	while (Tim < 300)
+	{
+	  Tim++;
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Tim);         //开启定时器1 设置PWM比较函数
+	  HAL_Delay(1);
+	}
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_SET);	
 }
 
@@ -91,18 +111,22 @@ void LCD_ShowImage(int m,int n,int x,int y,const unsigned char *p)
 * Note(s)    : None.
 *********************************************************************************************************
 */
+
 void Main_Menu()
 {   
 	u16 lx,ly;
-	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_RESET);
-
-	BACK_COLOR=WHITE;
-	POINT_COLOR=RED;	
-	LCD_ShowSinogram_32(32,32,70,0,0); 
-	LCD_ShowSinogram_32(32,32,102,0,1);	
-	LCD_ShowSinogram_32(32,32,134,0,2);  
+    u16 Tim = 0;
+//	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_RESET);  //不带PWM功能的灭屏效果函数  对应引脚——PB3
 	
-	POINT_COLOR=BLUE;	
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_8,GPIO_PIN_RESET);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);           //使能TIM1的PWM Channel1输出
+	BACK_COLOR=PALE_DENIM;
+	POINT_COLOR=SILVER;	
+	LCD_ShowSinogram_32(70,0,0); 
+	LCD_ShowSinogram_32(102,0,1);	
+	LCD_ShowSinogram_32(134,0,2);  
+	
+	POINT_COLOR=SILVER;	
     LCD_ShowString( 40,35,"2.8 TFT SPI 240*320");
 	LCD_ShowString( 10,55,"LCD_W:");LCD_ShowNum( 70,55,LCD_W,3);
 	LCD_ShowString(130,55,"LCD_H:");LCD_ShowNum(180,55,LCD_H,3);	
@@ -115,11 +139,11 @@ void Main_Menu()
 	lx+=80; 
 	LCD_ShowString(lx,ly,"CHY:");lx+=40;LCD_ShowNum(lx,ly,chy,5);
 	
-	POINT_COLOR=GREEN;	
+	POINT_COLOR=SILVER;	
 	LCD_DrawLine(0,120,240,120);
 	LCD_DrawLine(0,121,240,121);
 	
-	POINT_COLOR=RED;	
+	POINT_COLOR=SILVER;	
 	LCD_DrawPoint_Big(120,240);
 	Draw_Circle(120,240,10);
 	Draw_Circle(120,240,20);	
@@ -130,57 +154,20 @@ void Main_Menu()
 	Draw_Circle(120,240,70);	
 	Draw_Circle(120,240,80);
 	LCD_ShowString(50,130,"JC.Yang-----");LCD_ShowNum(150,130,66666,5);
-	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_SET);
-}  
-
-/*
-*********************************************************************************************************
-*                      Menu_First                    
-*
-* Description: 界面一
-*             
-* Arguments  : None.
-*
-* Reutrn     : None.
-*
-* Note(s)    : None.
-*********************************************************************************************************
-*/
-void Menu_First(void)
-{
-	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_RESET);
+//	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_SET);
 	
-	BACK_COLOR=WHITE;
-	POINT_COLOR=RED;	
-	LCD_DrawPoint_Big(120,160);
-	Draw_Circle(120,160,10);
-	Draw_Circle(120,160,30);	
-	Draw_Circle(120,160,50);	
-	Draw_Circle(120,160,70);	
-	Draw_Circle(120,160,90);	
-	Draw_Circle(120,160,110);	
-	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_SET);
-}
-/*
-*********************************************************************************************************
-*                      DrawPicture                    
-*
-* Description: 画图界面操作
-*             
-* Arguments  : None.
-*
-* Reutrn     : None.
-*
-* Note(s)    : None.
-*********************************************************************************************************
-*/
-void DrawPicture()
-{
-	LCD_Clear(WHITE); //清屏
-	BACK_COLOR=WHITE;
-	POINT_COLOR=RED;
-	Point();
+//	while (Tim < 300)
+//	{
+//	  Tim++;
+//	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Tim);
+//	  HAL_Delay(1);
+//	}
+	
+	BACK_COLOR=GRAY;
+	LCD_ShowString(50,130,"JC.Yang-----");LCD_ShowNum(150,130,66666,5);
+//	LCD_Fill(50,130,200,150,GRAY);
 }  
+ 
 /*
 *********************************************************************************************************
 *                      Detect                    
@@ -197,12 +184,13 @@ void DrawPicture()
 */
 unsigned char Detect() 
 {
-	if (tpstate()==0) //如果触摸按下，则进入绘图程序
-	 {
-		DrawPicture();//绘图
+	if (tpstate()==0) //如果触摸按下，则进入设置界面
+	{
+
+	 	Point(); 
 		return 1;
-	 }	
-	   return 0;
+	}	
+	return 0;
 }
 /*
 *********************************************************************************************************
@@ -528,7 +516,12 @@ void LCD_Init(void)
 void LCD_Clear(u16 Color)
 {
 	u16 i,j;  
-	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_RESET);	
+    u16 Tim = 0;
+//	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_RESET);  //不带PWM功能的灭屏效果函数  对应引脚——PB3
+	
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_8,GPIO_PIN_RESET);  //带PWM功能的灭屏效果函数  对应引脚——PA8
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);           //使能TIM1的PWM Channel1输出
+	
 	Address_Set(0,0,LCD_W-1,LCD_H-1);
     for(i=0;i<LCD_W;i++)
 	 {
@@ -537,8 +530,13 @@ void LCD_Clear(u16 Color)
         	LCD_WR_DATA(Color);	 			 
 	    }
 	  }
-	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_SET);
-
+//	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_3,GPIO_PIN_SET);
+	while (Tim < 300)
+	{
+	  Tim++;
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Tim);
+	  HAL_Delay(1);
+	}
 }
 
 /*
@@ -596,29 +594,98 @@ void LCD_Show(void)
 
 /*
 *********************************************************************************************************
-*                            LCD_ShowSinogram_32                  
+*                      LCD_Blink                    
 *
-* Description: 汉字显示函数，用于显示各种大小字体的函数
-* 			   POINT_COLOR为内容颜色，BACK_COLOR为背景颜色
-* Arguments  : 1> m:文字宽度
-*              2> n:文字高度
-*              3> x:文字最左上角横坐标（最大240）
-*              4> y:文字最左上角纵坐标（最大320）
-*              5> index:文字库（两种文字库16*16大小和32*32大小）
-*			     （具体汉字编号参考LCDfont.h文件中Font_Library_16和Font_Library_32数组）
+* Description: 实现屏幕呼吸灯效果
+*             
+* Arguments  : None.
+*
 * Reutrn     : None.
 *
 * Note(s)    : None.
 *********************************************************************************************************
 */
-void LCD_ShowSinogram_32(unsigned int m,unsigned int n,unsigned int x,unsigned int y,unsigned char index)	
+void LCD_Blink(void)
+{
+    u16 Tim = 0;
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);           //使能TIM1的PWM Channel1输出
+	
+	while (Tim < 300)
+	{
+	  Tim++;
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Tim);
+	  HAL_Delay(1);
+	}
+	while (Tim)
+	{
+	  Tim--;
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Tim);
+	  HAL_Delay(1);
+	}
+//	HAL_Delay(200);
+  
+//		__HAL_TIM_GET_COMPARE();     // 是用来读取CCRx的，一般用于捕获处理
+}
+
+/*
+*********************************************************************************************************
+*                      LCD_ShowIcon                    
+*
+* Description: 图标显示函数(30*30大小)
+*             
+* Arguments  : x：左上角横坐标
+*              y：左上角纵坐标
+*              index：图标筛选
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+void LCD_ShowIcon(unsigned int x,unsigned int y,unsigned char index)
+{
+	unsigned char i,j;
+	const u8 *temp=Icon_Library;
+	Address_Set(x,y,x+31,y+31);  //设置区域      
+	temp+=index*120;
+	for(j=0;j<120;j++)
+	{
+		for(i=0;i<8;i++)
+		{ 		     
+		 	if((*temp&(1<<i))!=0)
+			{
+				LCD_WR_DATA(POINT_COLOR);
+			} 
+			else
+			{
+				LCD_WR_DATA(BACK_COLOR);
+			}   
+		}
+		temp++;
+	 }	
+}
+/*
+*********************************************************************************************************
+*                            LCD_ShowSinogram_32                  
+*
+* Description: 汉字显示函数，用于显示各种大小字体的函数
+* 			   POINT_COLOR为内容颜色，BACK_COLOR为背景颜色
+* Arguments  : x:文字最左上角横坐标（最大240）
+*              y:文字最左上角纵坐标（最大320）
+*              index:文字库（两种文字库16*16大小和32*32大小）
+*			  （具体汉字编号参考LCDfont.h文件中Font_Library_16和Font_Library_32数组）
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+void LCD_ShowSinogram_32(unsigned int x,unsigned int y,unsigned char index)	
 {  
-	unsigned char i,j,k;
-	k=m*n/8;
-	u8 *temp=Font_Library_32;    
-    Address_Set(x,y,x+m-1,y+n-1); //设置区域      
-	temp+=index*k;
-	for(j=0;j<k;j++)
+	unsigned char i,j;
+	const u8 *temp=Font_Library_32;    
+    Address_Set(x,y,x+31,y+31); //设置区域      
+	temp+=index*128;
+	for(j=0;j<128;j++)
 	{
 		for(i=0;i<8;i++)
 		{ 		     
@@ -634,6 +701,29 @@ void LCD_ShowSinogram_32(unsigned int m,unsigned int n,unsigned int x,unsigned i
 		temp++;
 	 }
 }
+//void LCD_ShowSinogram_32(unsigned int m,unsigned int n,unsigned int x,unsigned int y,unsigned char index)	
+//{  
+//	unsigned char i,j,k;
+//	k=m*n/8;
+//	u8 *temp=Font_Library_32;    
+//    Address_Set(x,y,x+m-1,y+n-1); //设置区域      
+//	temp+=index*k;
+//	for(j=0;j<k;j++)
+//	{
+//		for(i=0;i<8;i++)
+//		{ 		     
+//		 	if((*temp&(1<<i))!=0)
+//			{
+//				LCD_WR_DATA(POINT_COLOR);
+//			} 
+//			else
+//			{
+//				LCD_WR_DATA(BACK_COLOR);
+//			}   
+//		}
+//		temp++;
+//	 }
+//}
 /*
 *********************************************************************************************************
 *                      LCD_ShowSinogram_16                    
@@ -652,7 +742,7 @@ void LCD_ShowSinogram_32(unsigned int m,unsigned int n,unsigned int x,unsigned i
 void LCD_ShowSinogram_16(unsigned int x,unsigned int y,unsigned char index)	
 {  
 	unsigned char i,j;
-	unsigned char *temp=Font_Library_16;    
+	const unsigned char *temp=Font_Library_16;    
     Address_Set(x,y,x+15,y+15); //设置区域      
 	temp+=index*32;
 	for(j=0;j<32;j++)
@@ -671,6 +761,42 @@ void LCD_ShowSinogram_16(unsigned int x,unsigned int y,unsigned char index)
 		temp++;
 	 }
 }
+/*
+*********************************************************************************************************
+*                      LCD_ShowNum_32                    
+*
+* Description: 显示32*64大小的数字（宋体 加粗）
+*             
+* Arguments  : None.
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+void LCD_ShowNum_32(unsigned int x,unsigned int y,unsigned char index)
+{
+	unsigned int i,j;
+	const unsigned int *temp=Num_Library;    
+    Address_Set(x,y,x+31,y+63); //设置区域         32*64
+	temp+=index*256;
+	for(j=0;j<256;j++)
+	{
+		for(i=0;i<8;i++)
+		{ 		     
+		 	if((*temp&(1<<i))!=0)
+			{
+				LCD_WR_DATA(POINT_COLOR);
+			} 
+			else
+			{
+				LCD_WR_DATA(BACK_COLOR);
+			}   
+		}
+		temp++;
+	 }
+}
+
 /*
 *********************************************************************************************************
 *                      LCD_SetPixel                    

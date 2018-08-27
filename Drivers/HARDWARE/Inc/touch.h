@@ -22,6 +22,12 @@
 // 修改历史   : 针对STM32L432修改对应触摸屏的引脚定义
 // 日    期   : 2018.8.2
 
+
+//
+// 修改历史   : 针对触摸屏背光开关的引脚定义  
+//             PB3——不带呼吸背光
+//             PA8——带呼吸效果背光
+// 日    期   : 2018.8.20
 //******************************************************************************/
 
 #ifndef __TOUCH_H
@@ -46,6 +52,24 @@
 
 #define LCD_CS2_Clr()    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET) //CS2
 #define LCD_CS2_Set()    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET)
+
+
+/*    温度调节界面触屏坐标    */
+#define RETURN    tp_pixad.x < 1000 && tp_pixad.y < 800
+#define CONFIRM   tp_pixad.x > 2500 && tp_pixad.y < 700
+#define	SET_UP    tp_pixad.x > 1300 && tp_pixad.x < 2400 && tp_pixad.y > 700 && tp_pixad.y <1400
+#define SET_DOWN  tp_pixad.x > 1300 && tp_pixad.x < 2400 && tp_pixad.y > 2300 && tp_pixad.y <2900
+#define TEMP      tp_pixad.x > 400 && tp_pixad.x < 1500 && tp_pixad.y > 3000 && tp_pixad.y <3500
+#define MODE      tp_pixad.x > 2500 && tp_pixad.x < 3500 && tp_pixad.y > 3000 && tp_pixad.y <3500
+	 
+/*    模式调节界面触屏坐标    */
+//#define 
+//#define 
+
+
+
+
+
 struct tp_pix_
 {
 	u16 x;
@@ -65,6 +89,8 @@ void Touch_Adjust(void);
 void Point(void); //绘图函数
 u16 ReadFromCharFrom7843(void);         //SPI 读数据
 u8 TP_Init(void);
+void SET_MODE(void);
+
 #endif  
 	 
 	 

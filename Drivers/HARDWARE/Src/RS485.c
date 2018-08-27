@@ -49,9 +49,6 @@
 ////	GPIO_InitStruct.Alternate = 
 ////	GPIO_InitStruct.Mode = GPIO_Mode_IN_FLOATING; //∏°ø’ ‰»Î
 ////	HAL_GPIO_Init(GPIOA,&GPIO_InitStruct);
-
-//	
-
 //}
 
 

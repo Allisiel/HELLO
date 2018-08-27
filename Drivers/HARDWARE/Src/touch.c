@@ -485,6 +485,67 @@ void Touch_Adjust(void)
 
 /*
 *********************************************************************************************************
+*                      SET_MODE                    
+*
+* Description: 模式界面刷屏函数
+*             
+* Arguments  : None.
+*
+* Reutrn     : None.
+*
+* Note(s)    : None.
+*********************************************************************************************************
+*/
+void SET_MODE(void)
+{
+	POINT_COLOR=IRON_GRAY;
+
+	LCD_ShowSinogram_32( 60, 60, 3);      //制
+	LCD_ShowSinogram_32( 92, 60,10);      //  
+	LCD_ShowSinogram_32(108, 60,10);      //  
+	LCD_ShowSinogram_32(140, 60, 4);      //冷
+
+	LCD_ShowSinogram_16( 76, 92, 0);      //  
+	LCD_ShowSinogram_32( 92, 90,10);      //  
+	LCD_ShowSinogram_32(120, 90,10);      //  				
+
+	LCD_ShowSinogram_32( 60,110, 3);      //制
+	LCD_ShowSinogram_32( 92,110,10);      //  
+	LCD_ShowSinogram_32(108,110,10);      // 				
+	LCD_ShowSinogram_32(140,110, 5);      //热
+	LCD_ShowSinogram_32(172,110,10);      // 	
+
+	LCD_ShowSinogram_16( 75,142, 0);      //  
+	LCD_ShowSinogram_32( 91,142,10);      //
+	LCD_ShowSinogram_32(123,142,10);      // 				
+	LCD_ShowSinogram_32(155,142,10);      // 
+	LCD_ShowSinogram_16( 80,144, 0);      //
+	LCD_ShowSinogram_32(180,140,10);      // 
+
+	LCD_ShowSinogram_32( 60,160, 6);      //睡			
+	LCD_ShowSinogram_32( 92,160,10);      //  
+	LCD_ShowSinogram_32(108,160,10);      // 
+	LCD_ShowSinogram_32(140,160, 7);	  //眠
+	LCD_ShowSinogram_32(172,160,10);      // 
+	LCD_ShowSinogram_32(204,160,10);      //
+
+	LCD_ShowSinogram_16( 80,190, 0);      //
+	LCD_ShowSinogram_32( 92,190,10);      //  
+	LCD_ShowSinogram_32(108,190,10);      // 
+	LCD_ShowSinogram_16( 70,194, 0);	  //
+	LCD_ShowSinogram_16( 86,194, 0);	  //
+	LCD_ShowSinogram_16(140,194, 0);	  //
+
+	LCD_ShowSinogram_32( 60,210, 8);	  //自
+	LCD_ShowSinogram_32( 92,210,10);      //  
+	LCD_ShowSinogram_32(108,210,10);      // 				
+	LCD_ShowSinogram_32(140,210, 9);	  //然
+
+	LCD_ShowSinogram_16(100,240, 0);	  // 			
+
+}
+/*
+*********************************************************************************************************
 *                      Point                    
 *
 * Description: 绘图函数
@@ -496,67 +557,130 @@ void Touch_Adjust(void)
 * Note(s)    : None.
 *********************************************************************************************************
 */
-#define RETURN tp_pixad.x < 1600 && tp_pixad.y > 3300
-#define	CONFIRM tp_pixad.x > 3000 && tp_pixad.y > 3300
-
-void Point(void) 
+void Point()
 {
-	double static s=0,t=0;
-	extern u8 ref;
-	extern const unsigned char *gImage_Knife;
-    while(1)
-	{  	
-		if(PEN==0)
+	static u8 Set_Temp = 24;
+	static u8 Now_Temp;
+	int unit,decade;
+//	
+//	extern const unsigned char *gImage_Mode_SetMode;
+	extern const unsigned char *gImage_Mode_SetTemp;
+	
+	BACK_COLOR=WHITE;
+	POINT_COLOR=LIGHTGREEN;
+	
+	while(1)
+	{
+		if(Set_Temp < 16) Set_Temp = 16;
+	    if(Set_Temp > 30) Set_Temp = 30;
+	
+		unit =   Set_Temp % 10;      //个位
+		decade = Set_Temp / 10;      //十位
+		
+		LCD_ShowNum_32( 74,120,decade);	  //显示十位
+		LCD_ShowNum_32(110,120,unit);     //显示个位
+		
+		if(PEN == 0)
 		{
-			s=0;t=0;
-			if(Convert_Pos())	//得到坐标值
+//			if(Convert_Pos())
+//			{
+////				LCD_DrawPoint_Big(tp_pixlcd.x,tp_pixlcd.y);   
+//			}
+			Convert_Pos();
+			if(SET_UP)
 			{
-			//	LCD_ShowString(10,250,"X:");LCD_ShowNum(30,250,(u32)tp_pixad.x,6);	
-				//LCD_ShowString(180,250,"Y:");LCD_ShowNum(200,250,(u32)tp_pixad.y,6);	
-				LCD_ShowString(10,250,"X:");LCD_ShowNum(30,250,tp_pixad.x,4);
-				LCD_ShowString(180,250,"Y:");LCD_ShowNum(200,250,tp_pixad.y,4);       //随机画点
-				LCD_ShowSinogram_16(0,288,31);
-				LCD_ShowSinogram_16(32,288,32);		      //取消		
-				LCD_ShowSinogram_16(176,288,29);
-				LCD_ShowSinogram_16(208,288,30);          //确定
-				
-				LCD_DrawPoint_Big(tp_pixlcd.x,tp_pixlcd.y);   
-			 }
+				Set_Temp++;
+				HAL_Delay(150);		
+			}
+			if(SET_DOWN)
+			{
+				Set_Temp--;
+				HAL_Delay(150);		
+			}
+			if(CONFIRM)
+			{
+				Now_Temp = Set_Temp;
+				HAL_Delay(200);
+			}
 			if(RETURN)
 			{
-				LCD_Clear(WHITE); 
-				Main_Menu();
+				break;
 			}
-		    if(CONFIRM)
-			{				
-				LCD_Clear(WHITE); 
-				Menu_First();
-			}
-			 
-		}
-		else
-		{	
-			for(s=0;s<65000;s++)
+			if(TEMP)
 			{
-				for(t=0;t<10;t++)
-				{
-					if(Detect()) //检测触摸和按键
-					{	
-						ref=1;
-						LCD_ShowImage(240,320,1,1,gImage_Knife); 
-						return;
-					}		
-
-				}
+				LCD_ShowImage(240,320,1,1,gImage_Mode_SetTemp);
+				HAL_Delay(10);
+				break;
 			}
-			return;
-//			t++;		
-//			if(t>65000)
-//			{
-//				s++;
-//				return;
-//			}
-		}		
+			if(MODE)
+			{
+				SET_MODE();
+				HAL_Delay(10);
+				break;
+			}
+		}	
 
-		}
-}	    	
+	}		
+}
+
+//void Point(void) 
+//{
+//	double static s=0,t=0;
+//	extern u8 ref;
+//	extern const unsigned char *gImage_Mode_SetTemp;
+//    while(1)
+//	{  	
+//		if(PEN==0)
+//		{
+//			s=0;t=0;
+//			if(Convert_Pos())	//得到坐标值
+//			{
+//			//	LCD_ShowString(10,250,"X:");LCD_ShowNum(30,250,(u32)tp_pixad.x,6);	
+//				//LCD_ShowString(180,250,"Y:");LCD_ShowNum(200,250,(u32)tp_pixad.y,6);	
+//				LCD_ShowString(10,250,"X:");LCD_ShowNum(30,250,tp_pixad.x,4);
+//				LCD_ShowString(180,250,"Y:");LCD_ShowNum(200,250,tp_pixad.y,4);       //随机画点
+//				LCD_ShowSinogram_16(0,288,31);
+//				LCD_ShowSinogram_16(32,288,32);		      //取消		
+//				LCD_ShowSinogram_16(176,288,29);
+//				LCD_ShowSinogram_16(208,288,30);          //确定
+//				
+//				LCD_DrawPoint_Big(tp_pixlcd.x,tp_pixlcd.y);   
+//			 }
+//			if(RETURN)
+//			{
+//				LCD_Clear(WHITE); 
+//				Main_Menu();
+//			}
+//		    if(CONFIRM)
+//			{				
+//				LCD_Clear(WHITE); 
+//				Menu_SetNum();
+//			}
+//			 
+//		}
+//		else
+//		{	
+//			for(s=0;s<65000;s++)
+//			{
+//				for(t=0;t<10;t++)
+//				{
+//					if(Detect()) //检测触摸和按键
+//					{	
+//						ref=1;
+//						LCD_ShowImage(240,320,1,1,gImage_Mode_SetTemp); 
+//						return;
+//					}		
+
+//				}
+//			}
+//			return;
+////			t++;		
+////			if(t>65000)
+////			{
+////				s++;
+////				return;
+////			}
+//		}		
+
+//		}
+//}	    	

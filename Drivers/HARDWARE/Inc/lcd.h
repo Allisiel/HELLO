@@ -74,10 +74,12 @@
 #define LCD_DATA 1	//写数据
 
 extern  u16 BACK_COLOR, POINT_COLOR;   //背景色，画笔色
+extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim2;
 
 
 void Main_Menu(void);//显示主菜单信息
-void Menu_First(void);   //显示菜单一信息
+
 
 void LCD_ShowImage(int m,int n,int x,int y,const unsigned char *p);        
 void DrawPicture(void);
@@ -104,11 +106,14 @@ void LCD_ShowNum(u16 x,u16 y,u32 num,u8 len);//显示数字
 void LCD_Show2Num(u16 x,u16 y,u16 num,u8 len);//显示2个数字
 void LCD_ShowString(u16 x,u16 y,const u8 *p);//显示一个字符串,16字体
  
-void LCD_ShowSinogram_32(unsigned int m,unsigned int n,unsigned int x,unsigned int y,unsigned char index);
+//void LCD_ShowSinogram_32(unsigned int m,unsigned int n,unsigned int x,unsigned int y,unsigned char index);
+void LCD_ShowSinogram_32(unsigned int x,unsigned int y,unsigned char index);
 void LCD_ShowSinogram_16(unsigned int x,unsigned int y,unsigned char index);
+void LCD_ShowNum_32(unsigned int x,unsigned int y,unsigned char index);
 
-void Fast_DrawFont_GBK16(u16 x, u16 y, u16 fc, u16 bc, u8 *s);
+void LCD_ShowIcon(unsigned int x,unsigned int y,unsigned char index);
 
+void LCD_Blink(void);
 
 //画笔颜色
 #define WHITE         	 0xFFFF
@@ -137,6 +142,47 @@ void Fast_DrawFont_GBK16(u16 x, u16 y, u16 fc, u16 bc, u8 *s);
 
 #define LGRAYBLUE        0XA651 //浅灰蓝色(中间层颜色)
 #define LBBLUE           0X2B12 //浅棕蓝色(选择条目的反色)
+
+#define DARK_GRAY        44373
+#define LIGHT_GRAY       54938
+#define IRON_GRAY		 25290
+#define SLATE_GRAY 		 29714
+#define DIMGRAY          27469
+#define SILVER           50712
+#define PALE_DENIM       23608
+
+#define SNOW			 65503
+#define FLORAL_WHITE 	 65502
+
+#define GOLDEN 			 65184
+
+#define CADET_BLUE 		 23796
+#define PEACOCK_BLUE 	 1041
+#define POWDER_BLUE 	 46876
+#define STRONG_BLUE		 782
+#define LIGHT_BLUE 		 44764
+#define PALE_BLUE 		 32217
+#define SAXE_BLUE 		 17622
+#define DEEP_SKY_BLUE 	 1535
+#define SKY_BLUE		 34429
+#define LIGHT_SKY_BLUE 	 34431
+#define MARINE_BLUE  	 559
+#define PRUSSIAN_BLUE 	 394
+#define STEEL_BLUE 		 17430
+#define ALICE_BLUE   	 63455
+#define DODGER_BLUE  	 7327
+#define MINERAL_BLUE  	 627
+#define AZURE 			 1023
+#define WEDGWOOD_BLUE 	 21559
+#define LIGHT_STEEL_BLUE 46651
+#define COBALT_BLUE 	 565
+#define PALE_DENIM 		 23608
+#define CORNFLOWER_BLUE  25789
+#define SALVIA_BLUE 	 19484
+#define DARK_POWDER_BLUE 403
+#define SAPPHIRE 		 2348
+#define INTERNATIONAL_KLEIN_BLUE 372
+#define CERULEAN_BLUE 	 10903
 
 /*    菜单枚举变量    */
 typedef enum

@@ -39,13 +39,14 @@
 	
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32l4xx_hal.h"
+#include "cmsis_os.h"
+
+/* USER CODE BEGIN Includes */
 #include "LCD.h"
 #include "bmp.h"
 #include "touch.h"
 #include "RS485.h"
-#include "stm32l4xx_hal.h"
-
-/* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
@@ -54,10 +55,16 @@ SPI_HandleTypeDef hspi1;        //硬件SPI结构体初始化
 DMA_HandleTypeDef hdma_spi1_tx;
 DMA_HandleTypeDef hdma_spi1_rx;
 
+TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim2;
+
 UART_HandleTypeDef huart1;
+
+osThreadId defaultTaskHandle;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+//static u8  LED_State = 0;
 
 /* USER CODE END PV */
 
@@ -67,9 +74,18 @@ static void MX_SPI1_Init(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_USART1_UART_Init(int bound);
+static void MX_TIM1_Init(void);
+static void MX_TIM2_Init(void);
+static void MX_NVIC_Init(void);
+
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
+void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+//static u8 Set_Temp;
+//extern u8 ref;
 
 /* USER CODE END PFP */
 
@@ -85,7 +101,8 @@ static void MX_USART1_UART_Init(int bound);
 int main(void)
 {
 	/* USER CODE BEGIN 1 */
-	extern u8 ref;
+
+//	extern u8 LED_State;
 	/* USER CODE END 1 */
 
 	/* MCU Configuration----------------------------------------------------------*/
@@ -94,18 +111,19 @@ int main(void)
 	HAL_Init();
 
 	/* USER CODE BEGIN Init */
-		//初始化LCD 
+
 	/* USER CODE END Init */
 
 	/* Configure the system clock */
 	SystemClock_Config();
 	/* USER CODE BEGIN SysInit */
+	
 	HAL_NVIC_SetPriority(SPI1_IRQn,2,2);
 	HAL_SPI_MspInit(&hspi1);
 	TP_Init();
 	Touch_Init()  ;//模拟SPI初始化
 	MX_SPI1_Init();//硬件SPI初始化
-	LCD_Init();	
+	LCD_Init();
 	/* USER CODE END SysInit */
 
 	/* Initialize all configured peripherals */
@@ -113,33 +131,128 @@ int main(void)
 	MX_DMA_Init();
 	MX_SPI1_Init();
 	MX_USART1_UART_Init(9600);
-
+    MX_TIM1_Init();
+    MX_TIM2_Init();
+	
+	/* Initialize interrupts */
+	MX_NVIC_Init();
 	/* USER CODE BEGIN 2 */
-	BACK_COLOR=BLACK;;POINT_COLOR=WHITE; 
-    LCD_ShowImage(240,320,1,1,gImage_Knife); 
-	Detect();
-	Main_Menu();
+	BACK_COLOR=GRAYBLUE; POINT_COLOR=WHITE;
+
+//	LCD_Clear(PALE_DENIM);
+//	Detect();
+//	Main_Menu();
+
+	HAL_TIM_Base_Start_IT(&htim2);     //使能定时器2更新中断：TIM_IT_UPDATE
+	HAL_TIM_Base_Start_IT(&htim1);
+    LCD_Clear(GRAYBLUE);
+	
+	LCD_ShowSinogram_32( 65,145,0);
+	LCD_ShowSinogram_32(105,145,1);
+	LCD_ShowSinogram_32(145,145,2);
 	Detect();
 	/* USER CODE END 2 */
+
+	/* USER CODE BEGIN RTOS_MUTEX */
+	/* add mutexes, ... */
+	/* USER CODE END RTOS_MUTEX */
+
+	/* USER CODE BEGIN RTOS_SEMAPHORES */
+	/* add semaphores, ... */
+	/* USER CODE END RTOS_SEMAPHORES */
+
+	/* USER CODE BEGIN RTOS_TIMERS */
+	/* start timers, add new ones, ... */
+	/* USER CODE END RTOS_TIMERS */
+
+	/* Create the thread(s) */
+	/* definition and creation of defaultTask */
+	osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+	defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+
+	/* USER CODE BEGIN RTOS_THREADS */
+	/* add threads, ... */
+	/* USER CODE END RTOS_THREADS */
+
+	/* USER CODE BEGIN RTOS_QUEUES */
+	/* add queues, ... */
+	/* USER CODE END RTOS_QUEUES */
+
+
+	/* Start scheduler */
+	osKernelStart();
+
+	/* We should never get here as control is now taken by the scheduler */
+
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1)
 	{
-//		Detect();
-		LCD_ShutDown(10);
-		LCD_Show();
+		
+//		LCD_ShutDown(10);
+//		LCD_Show();
+		if(PEN == 0)
+		{
+			LCD_ShowImage(240,320,1,1,gImage_Mode_SetTemp);
+			Point();
+		}
+
+//		BACK_COLOR=SNOW; POINT_COLOR=SILVER;    //充电动画PALE_DENIM
+//		LCD_ShowIcon(0,0,1);
+//		HAL_Delay(800);
+//		LCD_ShowIcon(0,0,2);
+//		HAL_Delay(800);
+//		LCD_ShowIcon(0,0,3);
+//		HAL_Delay(800);
+//		LCD_ShowIcon(0,0,4);
+//		HAL_Delay(800);
+//		LCD_ShowIcon(0,0,5);
+//		HAL_Delay(800);
+		
+
 		/* USER CODE END WHILE */
-//		if(Detect()) //检测触摸和按键
-//		{	
-//		LCD_ShowImage(240,320,1,1,gImage_Knife); 
-//		}
-//		if(ref) LCD_ShowImage(240,320,1,1,gImage_Knife); 
+
 
 		/* USER CODE BEGIN 3 */
 
 	}
 		/* USER CODE END 3 */
+
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	/* Prevent unused argument(s) compilation warning */
+//	UNUSED(htim);
+
+	/* NOTE : This function should not be modified, when the callback is needed,
+			the HAL_TIM_PeriodElapsedCallback could be implemented in the user file
+	*/
+//	static u32 LED_Add = 0;
+	
+	if(htim == (&htim2))              //定时器1 更新中断 5ms一次
+	{
+		
+		
+//		LCD_ShutDown(10);
+//		LCD_Show();
+//		LED_Add++;
+//		if(LED_Add == 200)     //1秒钟
+//		{
+////			LED_Add =0;
+////			LED_State = 1;
+////			LCD_Blink();         //呼吸灯	
+////			HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_3);
+////			LCD_ShowImage(240,320,1,1,gImage_Mode_SetTemp);			
+//		}
+	}
+	
+	if(htim == (&htim1))
+	{
+			
+
+	}
 
 }
 
@@ -202,6 +315,24 @@ void SystemClock_Config(void)
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* DMA1_Channel2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+  /* TIM2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(TIM2_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(TIM2_IRQn);
+}
+
+/* SPI1 init function */
 static void MX_SPI1_Init(void)
 {
 
@@ -224,6 +355,111 @@ static void MX_SPI1_Init(void)
 	{
 	_Error_Handler(__FILE__, __LINE__);
 	}
+
+}
+
+/* TIM1 init function */   //80000000/400 = 200000   5微秒一次
+static void MX_TIM1_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+  TIM_OC_InitTypeDef sConfigOC;
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig;
+
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 0;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 399;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_ENABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.BreakFilter = 0;
+  sBreakDeadTimeConfig.Break2State = TIM_BREAK2_DISABLE;
+  sBreakDeadTimeConfig.Break2Polarity = TIM_BREAK2POLARITY_HIGH;
+  sBreakDeadTimeConfig.Break2Filter = 0;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  HAL_TIM_MspPostInit(&htim1);
+
+}
+
+/* TIM2 init function */  //  5ms一次中断
+static void MX_TIM2_Init(void)    
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 7999;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 4;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
 
 }
 
@@ -287,6 +523,19 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/* StartDefaultTask function */
+void StartDefaultTask(void const * argument)
+{
+
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END 5 */ 
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
